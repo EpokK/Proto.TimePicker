@@ -27,9 +27,9 @@
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.7/prototype.js"></script>
 	<script type="text/javascript" src="proto.timePicker.js"></script>
 	<script type="text/javascript">
-		jQuery(function() {
+		Event.observe(document, 'dom:loaded', function () {
 			// Default.
-			$("#time1").timePicker();
+			new Proto.TimePicker("time1");
 			// 02.00 AM - 03.30 PM, 15 minutes steps.
 //			new Proto.TimePicker('time2', {
 //				startTime: "02.00",	 // Using string. Can take string or Date object.
