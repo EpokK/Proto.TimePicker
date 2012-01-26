@@ -100,7 +100,11 @@
 
 				// Position
 				var elmOffset = elm.getLayout();
-				$tpDiv.setStyle({'top':(elmOffset.get('top') + elmOffset.get('height')) + 'px', 'left':elmOffset.get('left') + 'px'});
+				$tpDiv.setStyle({
+					'top':(elmOffset.get('top') + elmOffset.get('border-box-height')) + 'px', 
+					'left':elmOffset.get('left') + 'px',
+					'minWidth':elmOffset.get('padding-box-width') + 'px'
+				});
 
 				// Show picker. This has to be done before scrollTop is set since that
 				// can't be done on hidden elements.
