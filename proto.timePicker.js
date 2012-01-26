@@ -250,6 +250,7 @@
 
 	function timeStringToDate(input, settings) {
 		if (input) {
+			input = input.toUpperCase();
 			var array = input.split(settings.separator);
 			var hours = parseFloat(array[0]);
 			var minutes = parseFloat(array[1]);
