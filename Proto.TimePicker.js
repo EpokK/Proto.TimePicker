@@ -101,11 +101,12 @@
 				$tpDiv.select('li').invoke('removeClassName', selectedClass);
 
 				// Position
-				var elmOffset = elm.getLayout();
+				var elmOffset = elm.cumulativeOffset();
+				var elmLayout = elm.getLayout();
 				$tpDiv.setStyle({
-					'top':(elmOffset.get('top') + elmOffset.get('border-box-height')) + 'px', 
-					'left':elmOffset.get('left') + 'px',
-					'minWidth':elmOffset.get('padding-box-width') + 'px'
+					'top':(elmOffset.top + elmLayout.get('border-box-height')) + 'px', 
+					'left':elmOffset.left + 'px',
+					'minWidth':elmLayout.get('padding-box-width') + 'px'
 				});
 
 				// Show picker. This has to be done before scrollTop is set since that
