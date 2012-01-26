@@ -189,10 +189,10 @@
 						if ($tpDiv.visible()) {
 							var sel = $tpList.down(selectedSelector);
 							setTimeVal(elm, sel, $tpDiv, settings);
+							e.stop();
+							return false;
 						}
-						e.stop();
-						return false;
-
+						return;
 					case 27: // Esc
 						$tpDiv.hide();
 						e.stop();
