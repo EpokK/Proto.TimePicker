@@ -6,6 +6,7 @@ div.time-picker {
   border: 1px solid #aaa;
   z-index: 9999999999;
   margin: 0;
+  box-shadow:0 2px 4px rgba(0,0,0,0.5);
 }
 div.time-picker-12hours {
   width:6em; /* needed for IE */
