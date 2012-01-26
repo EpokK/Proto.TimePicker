@@ -23,21 +23,20 @@
 	window.Proto = window.Proto || {};
 	window.Proto.TimePicker = Class.create({
 		version:'0.1',
-		defaults : {
-			step:30,
-			startTime: new Date(0, 0, 0, 0, 0, 0),
-			endTime: new Date(0, 0, 0, 23, 30, 0),
-			separator: ':',
-			show24Hours: true
-		},
-		
-		initialize: function(elm, settings) {
+		initialize: function(elm, options) {
 
-			//if only one field is passed, wrap it in an array
-			if (!Object.isArray(elm))
-				elm = [elm];
-				
-			Object.extend(this.defaults, settings || {});
+			elm = $(elm);
+			elm.timePicker = this;
+			
+			var settings = {
+				step:30,
+				startTime: new Date(0, 0, 0, 0, 0, 0),
+				endTime: new Date(0, 0, 0, 23, 30, 0),
+				separator: ':',
+				show24Hours: true
+			};
+			
+			Object.extend(settings, options || {});
 
 			var tpOver = false;
 			var keyDown = false;
@@ -46,7 +45,7 @@
 			var selectedClass = "selected";
 			var selectedSelector = "li." + selectedClass;
 
-			$(elm).attr('autocomplete', 'OFF'); // Disable browser autocomplete
+			elm.setAttribute('autocomplete', 'OFF'); // Disable browser autocomplete
 
 			var times = [];
 			var time = new Date(startTime); // Create a new date object.
@@ -55,46 +54,49 @@
 				time = new Date(time.setMinutes(time.getMinutes() + settings.step));
 			}
 
-			var $tpDiv = $('<div class="time-picker'+ (settings.show24Hours ? '' : ' time-picker-12hours') +'"></div>');
-			var $tpList = $('<ul></ul>');
+			var $tpDiv = new Element('div',{className:'time-picker'+ (settings.show24Hours ? '' : ' time-picker-12hours')});
+			var $tpList = new Element('ul');
 
 			// Build the list.
 			for(var i = 0; i < times.length; i++) {
-				$tpList.append("<li>" + times[i] + "</li>");
+				$tpList.insert("<li data-time=\""+times[i]+"\">" + times[i] + "</li>");
 			}
-			$tpDiv.append($tpList);
+			$tpDiv.insert($tpList);
 			// Append the timPicker to the body and position it.
-			$tpDiv.appendTo('body').hide();
+			document.body.appendChild($tpDiv.hide());
 
 			// Store the mouse state, used by the blur event. Use mouseover instead of
 			// mousedown since Opera fires blur before mousedown.
-			$tpDiv.mouseover(function() {
+			$tpDiv.on('mouseover', function() {
 				tpOver = true;
-			}).mouseout(function() {
+			});
+			$tpDiv.on('mouseout', function() {
 				tpOver = false;
 			});
 
-			$("li", $tpList).mouseover(function() {
+			$tpList.on('mouseover', 'li',function(event, element) {
 				if (!keyDown) {
-					$(selectedSelector, $tpDiv).removeClass(selectedClass);
-					$(this).addClass(selectedClass);
+					$tpDiv.select(selectedSelector).invoke('removeClassName', selectedClass);
+					element.addClassName(selectedClass);
 				}
-			}).mousedown(function() {
+			});
+			$tpList.on('mousedown','li', function(event, element) {
 				 tpOver = true;
-			}).click(function() {
-				setTimeVal(elm, this, $tpDiv, settings);
+			});
+			$tpList.on('click', 'li', function(event, element) {
+				setTimeVal(elm, element, $tpDiv, settings);
 				tpOver = false;
 			});
 
 			var showPicker = function() {
-				if ($tpDiv.is(":visible")) {
+				if ($tpDiv.visible()) {
 					return false;
 				}
-				$("li", $tpDiv).removeClass(selectedClass);
+				$tpDiv.select('li').invoke('removeClassName', selectedClass);
 
 				// Position
-				var elmOffset = $(elm).offset();
-				$tpDiv.css({'top':elmOffset.top + elm.offsetHeight, 'left':elmOffset.left});
+				var elmOffset = elm.getLayout();
+				$tpDiv.setStyle({'top':(elmOffset.get('top') + elmOffset.get('height')) + 'px', 'left':elmOffset.get('left') + 'px'});
 
 				// Show picker. This has to be done before scrollTop is set since that
 				// can't be done on hidden elements.
@@ -107,20 +109,21 @@
 				var steps = Math.round(min / settings.step);
 				var roundTime = normaliseTime(new Date(0, 0, 0, 0, (steps * settings.step + startMin), 0));
 				roundTime = (startTime < roundTime && roundTime <= endTime) ? roundTime : startTime;
-				var $matchedTime = $("li:contains(" + formatTime(roundTime, settings) + ")", $tpDiv);
+				var $matchedTime = $tpDiv.down("li[data-time='" + formatTime(roundTime, settings) + "']");
 
-				if ($matchedTime.length) {
-					$matchedTime.addClass(selectedClass);
+				if ($matchedTime) {
+					$matchedTime.addClassName(selectedClass);
 					// Scroll to matched time.
-					$tpDiv[0].scrollTop = $matchedTime[0].offsetTop;
+					$tpDiv.scrollTop = $matchedTime.offsetTop;
 				}
 				return true;
 			};
 			// Attach to click as well as focus so timePicker can be shown again when
 			// clicking on the input when it already has focus.
-			$(elm).focus(showPicker).click(showPicker);
+			elm.on('focus', showPicker);
+			elm.on('click', showPicker);
 			// Hide timepicker on blur
-			$(elm).blur(function() {
+			elm.on('blur', function() {
 				if (!tpOver) {
 					$tpDiv.hide();
 				}
@@ -129,66 +132,72 @@
 			// Keydown doesn't repeat on Firefox and Opera on Mac.
 			// Using kepress for Opera and Firefox and keydown for the rest seems to
 			// work with up/down/enter/esc.
-			var event = ($.browser.opera || $.browser.mozilla) ? 'keypress' : 'keydown';
-			$(elm)[event](function(e) {
+			var event = (window.Prototype.Browser.Opera || window.Prototype.Browser.Gecko) ? 'keypress' : 'keydown';
+			elm.on(event, function(e) {
 				var $selected;
 				keyDown = true;
-				var top = $tpDiv[0].scrollTop;
+				var top = $tpDiv.scrollTop;
 				switch (e.keyCode) {
 					case 38: // Up arrow.
 						// Just show picker if it's hidden.
 						if (showPicker()) return false;
 						
-						$selected = $(selectedSelector, $tpList);
-						var prev = $selected.prev().addClass(selectedClass)[0];
+						$selected = $tpList.down(selectedSelector) || $tpList.childElements().last();
+						var prev = $selected.previous();
 						if (prev) {
-							$selected.removeClass(selectedClass);
+							prev.addClassName(selectedClass)
+							$selected.removeClassName(selectedClass);
 							// Scroll item into view.
-							if (prev.offsetTop < top) {
-								$tpDiv[0].scrollTop = top - prev.offsetHeight;
+							if (prev.positionedOffset().top < top) {
+								$tpDiv.scrollTop = top - prev.getHeight();
 							}
 						}
 						else {
 							// Loop to next item.
-							$selected.removeClass(selectedClass);
-							prev = $("li:last", $tpList).addClass(selectedClass)[0];
-							$tpDiv[0].scrollTop = prev.offsetTop - prev.offsetHeight;
+							$selected.removeClassName(selectedClass);
+							prev = $tpList.down("li:last").addClassName(selectedClass)[0];
+							$tpDiv.scrollTop = prev.positionedOffset().top - prev.getHeight;
 						}
+						e.stop();
 						return false;
 
 					case 40: // Down arrow, similar in behaviour to up arrow.
 						if (showPicker()) return false;
 
-						$selected = $(selectedSelector, $tpList);
-						var next = $selected.next().addClass(selectedClass)[0];
+						$selected = $tpList.down(selectedSelector) || $tpList.down();
+						var next = $selected.next()
 						if (next) {
-							$selected.removeClass(selectedClass);
-							if (next.offsetTop + next.offsetHeight > top + $tpDiv[0].offsetHeight) {
-								$tpDiv[0].scrollTop = top + next.offsetHeight;
+							next.addClassName(selectedClass);
+							$selected.removeClassName(selectedClass);
+							if (next.positionedOffset().top + next.getHeight() > top + $tpDiv.getHeight) {
+								$tpDiv.scrollTop = top + next.getHeight();
 							}
 						}
 						else {
-							$selected.removeClass(selectedClass);
-							next = $("li:first", $tpList).addClass(selectedClass)[0];
-							$tpDiv[0].scrollTop = 0;
+							$selected.removeClassName(selectedClass);
+							next = $tpList.down("li").addClassName(selectedClass);
+							$tpDiv.scrollTop = 0;
 						}
+						e.stop();
 						return false;
 
 					case 13: // Enter
-						if ($tpDiv.is(":visible")) {
-							var sel = $(selectedSelector, $tpList)[0];
+						if ($tpDiv.visible()) {
+							var sel = $tpList.down(selectedSelector);
 							setTimeVal(elm, sel, $tpDiv, settings);
 						}
+						e.stop();
 						return false;
 
 					case 27: // Esc
 						$tpDiv.hide();
+						e.stop();
 						return false;
 
 				}
 				return true;
 			});
-			$(elm).keyup(function(e) {
+			elm.on('keyup', function(e) {
 				keyDown = false;
 			});
 			// Helper function to get an inputs current time as Date object.
@@ -201,7 +210,7 @@
 			this.setTime = function(time) {
 				elm.value = formatTime(timeToDate(time, settings), settings);
 				// Trigger element's change events.
-				$(elm).change();
+				elm.fire('time:change');
 			};
 
 		} // End fn;
@@ -210,11 +219,11 @@
 
 	function setTimeVal(elm, sel, $tpDiv, settings) {
 		// Update input field
-		elm.value = $(sel).text();
+		elm.value = $(sel).getAttribute('data-time');
 		// Trigger element's change events.
-		$(elm).change();
+		elm.fire('time:change');
 		// Keep focus for all but IE (which doesn't like it)
-		if (!$.browser.msie) {
+		if (!window.Prototype.Browser.IE) {
 			elm.focus();
 		}
 		// Hide picker
