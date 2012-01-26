@@ -1,14 +1,15 @@
 /*
- * A time picker for jQuery
+ * A time picker for Prototype.js
+ * 
  *
- * Dual licensed under the MIT and GPL licenses.
- * Copyright (c) 2009 Anders Fajerson
- * @name     timePicker
- * @author   Anders Fajerson (http://perifer.se)
- * @example  $("#mytime").timePicker();
- * @example  $("#mytime").timePicker({step:30, startTime:"15:00", endTime:"18:00"});
+ * Dual licensed under the MIT and GPL licenses (unfortunately).
+ * Copyright (c) 2012 Jarvis Badgley
+ * @name     Proto.TimePicker
+ * @author   Jarvis Badgley (http://chipersoft.com)
+ * @example  new Proto.TimePicker('mytime')
+ * @example  new Proto.TimePicker('mytime', {step:30, startTime:"15:00", endTime:"18:00"});
  *
- * Based on timePicker by Sam Collet (http://www.texotela.co.uk/code/jquery/timepicker/)
+ * Ported from jquery.timePicker by Anders Fajerson (https://github.com/perifer/timePicker/network)
  *
  * Options:
  *   step: # of minutes to step the time by
@@ -17,6 +18,7 @@
  *   defaultTime: if the user has not yet selected a time, select this by default
  *   separator: separator string to use between hours and minutes (e.g. ':')
  *   show24Hours: use a 24-hour scheme
+ *   leadingZero: append a leading 0 to hours less than 10.
  */
 
 (function(){
