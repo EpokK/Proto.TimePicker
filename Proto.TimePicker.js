@@ -25,12 +25,13 @@
 
 	window.Proto = window.Proto || {};
 	window.Proto.TimePicker = Class.create({
-		version:'0.1',
+		version:'0.2', // by Riri
 		initialize: function(elm, options) {
 
 			elm = $(elm);
 			elm.timePicker = this;
-			
+			hourFormat = /^([01]?[0-9]|2[0-3]):[0-5][0-9]/;
+
 			var settings = {
 				step:30,
 				startTime: new Date(0, 0, 0, 0, 0, 0),
@@ -40,7 +41,7 @@
 				show24Hours: true,
 				leadingZero: true
 			};
-			
+
 			Object.extend(settings, options || {});
 
 			var tpOver = false;
@@ -104,7 +105,7 @@
 				var elmOffset = elm.cumulativeOffset();
 				var elmLayout = elm.getLayout();
 				$tpDiv.setStyle({
-					'top':(elmOffset.top + elmLayout.get('border-box-height')) + 'px', 
+					'top':(elmOffset.top + elmLayout.get('border-box-height')) + 'px',
 					'left':elmOffset.left + 'px',
 					'minWidth':elmLayout.get('padding-box-width') + 'px'
 				});
@@ -137,6 +138,9 @@
 			elm.on('blur', function() {
 				if (!tpOver) {
 					$tpDiv.hide();
+					if(!elm.value.match(hourFormat)) {
+						elm.value = '12:00'; // default value
+					}
 				}
 			});
 			// Keypress doesn't repeat on Safari for non-text keys.
@@ -152,22 +156,22 @@
 					case 38: // Up arrow.
 						// Just show picker if it's hidden.
 						if (showPicker()) return false;
-						
+
 						$selected = $tpList.down(selectedSelector) || $tpList.childElements().last();
 						var prev = $selected.previous();
-						if (prev) {
+
+						if (typeof prev !== 'undefined') {
 							prev.addClassName(selectedClass)
 							$selected.removeClassName(selectedClass);
 							// Scroll item into view.
 							if (prev.positionedOffset().top < top) {
 								$tpDiv.scrollTop = top - prev.getHeight();
 							}
-						}
-						else {
+						} else {
 							// Loop to next item.
 							$selected.removeClassName(selectedClass);
-							prev = $tpList.down("li:last").addClassName(selectedClass)[0];
-							$tpDiv.scrollTop = prev.positionedOffset().top - prev.getHeight;
+							prev = $tpList.down("li:last").addClassName(selectedClass);
+							$tpDiv.scrollTop = prev.positionedOffset().top - prev.getHeight();
 						}
 						e.stop();
 						return false;
@@ -177,10 +181,10 @@
 
 						$selected = $tpList.down(selectedSelector) || $tpList.down();
 						var next = $selected.next()
-						if (next) {
+						if (typeof next !== 'undefined') {
 							next.addClassName(selectedClass);
 							$selected.removeClassName(selectedClass);
-							if (next.positionedOffset().top + next.getHeight() > top + $tpDiv.getHeight) {
+							if (next.positionedOffset().top + next.getHeight() > top + $tpDiv.getHeight()) {
 								$tpDiv.scrollTop = top + next.getHeight();
 							}
 						}
@@ -191,19 +195,51 @@
 						}
 						e.stop();
 						return false;
-
+					case 9 : // Tab
 					case 13: // Enter
 						if ($tpDiv.visible()) {
-							var sel = $tpList.down(selectedSelector);
-							setTimeVal(elm, sel, $tpDiv, settings);
-							e.stop();
+							$tpDiv.hide(); // Hide picker
 							return false;
 						}
 						return;
 					case 27: // Esc
+						// Hide picker
 						$tpDiv.hide();
 						e.stop();
 						return false;
+					default:
+						if(elm.value.match(hourFormat)) {
+							$tpDiv.select('li').invoke('removeClassName', selectedClass);
+
+							// Position
+							var elmOffset = elm.cumulativeOffset();
+							var elmLayout = elm.getLayout();
+							$tpDiv.setStyle({
+								'top':(elmOffset.top + elmLayout.get('border-box-height')) + 'px',
+								'left':elmOffset.left + 'px',
+								'minWidth':elmLayout.get('padding-box-width') + 'px'
+							});
+
+							// Show picker. This has to be done before scrollTop is set since that
+							// can't be done on hidden elements.
+							$tpDiv.show();
+
+							// Try to find a time in the list that matches the entered time.
+							var time = elm.value ? timeStringToDate(elm.value, settings) : defaultTime;
+							var startMin = startTime.getHours() * 60 + startTime.getMinutes();
+							var min = (time.getHours() * 60 + time.getMinutes()) - startMin;
+							var steps = Math.round(min / settings.step);
+							var roundTime = normaliseTime(new Date(0, 0, 0, 0, (steps * settings.step + startMin), 0));
+							roundTime = (startTime < roundTime && roundTime <= endTime) ? roundTime : startTime;
+							var $matchedTime = $tpDiv.down("li[data-time='" + formatTime(roundTime, settings) + "']");
+
+							if ($matchedTime) {
+								$matchedTime.addClassName(selectedClass);
+								// Scroll to matched time.
+								$tpDiv.scrollTop = $matchedTime.offsetTop;
+							}
+ 						}
+						break;
 
 				}
 				return true;
@@ -223,10 +259,21 @@
 				// Trigger element's change events.
 				elm.fire('time:change');
 			};
-
-		} // End fn;
+		}
 	});
 	// Private functions.
+
+	function getLiForHour(hour, $tpDiv) {
+		var elem = false;
+
+		$tpDiv.select('li').each(function(li) {
+			if(li.readAttribute('data-time') == hour) {
+				elem = li;
+			}
+		});
+
+		return elem;
+	}
 
 	function setTimeVal(elm, sel, $tpDiv, settings) {
 		// Update input field
