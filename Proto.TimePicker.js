@@ -1,26 +1,3 @@
-/*
- * A time picker for Prototype.js
- * 
- *
- * Dual licensed under the MIT and GPL licenses (unfortunately).
- * Copyright (c) 2012 Jarvis Badgley
- * @name     Proto.TimePicker
- * @author   Jarvis Badgley (http://chipersoft.com)
- * @example  new Proto.TimePicker('mytime')
- * @example  new Proto.TimePicker('mytime', {step:30, startTime:"15:00", endTime:"18:00"});
- *
- * Ported from jquery.timePicker by Anders Fajerson (https://github.com/perifer/timePicker/network)
- *
- * Options:
- *   step: # of minutes to step the time by
- *   startTime: beginning of the range of acceptable times
- *   endTime: end of the range of acceptable times
- *   defaultTime: if the user has not yet selected a time, select this by default
- *   separator: separator string to use between hours and minutes (e.g. ':')
- *   show24Hours: use a 24-hour scheme
- *   leadingZero: append a leading 0 to hours less than 10.
- */
-
 (function(){
 
 	window.Proto = window.Proto || {};
@@ -196,14 +173,20 @@
 						e.stop();
 						return false;
 					case 9 : // Tab
+						if ($tpDiv.visible()) {
+							$tpDiv.hide();
+							return false;
+						}
+						break;
 					case 13: // Enter
 						if ($tpDiv.visible()) {
-							$tpDiv.hide(); // Hide picker
+							var sel = $tpList.down(selectedSelector);
+							setTimeVal(elm, sel, $tpDiv, settings);
+							e.stop();
 							return false;
 						}
 						return;
 					case 27: // Esc
-						// Hide picker
 						$tpDiv.hide();
 						e.stop();
 						return false;
@@ -262,18 +245,6 @@
 		}
 	});
 	// Private functions.
-
-	function getLiForHour(hour, $tpDiv) {
-		var elem = false;
-
-		$tpDiv.select('li').each(function(li) {
-			if(li.readAttribute('data-time') == hour) {
-				elem = li;
-			}
-		});
-
-		return elem;
-	}
 
 	function setTimeVal(elm, sel, $tpDiv, settings) {
 		// Update input field
