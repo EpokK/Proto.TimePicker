@@ -2,7 +2,9 @@
 
 A time picker control for textfields built using Prototype.js. Inspired by Google Calendar.
 
-Ported from Anders Fajerson's jQuery.timePicker (http://github.com/perifer/timePicker/network)
+![Timepicker](img.png)
+
+Ported from Anders Fajerson's [jQuery.timePicker](http://github.com/perifer/timePicker/network) and fixed by [@_PandaJS](https://twitter.com/_PandaJS)
 
 ##Examples
 
@@ -23,9 +25,12 @@ Default:
       endTime: new Date(0, 0, 0, 15, 30, 0), // Using Date object here.
       show24Hours: false,
       separator: '.',
-      step: 15
+      step: 15,
+      onChange: function() {
+        console.log('change !');
+      }
     });
 	</script>
 ```
-      
+
 More advanced example available in the index.htm file.
