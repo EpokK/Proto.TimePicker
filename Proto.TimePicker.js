@@ -116,7 +116,7 @@
 				if (!tpOver) {
 					$tpDiv.hide();
 					if(!elm.value.match(hourFormat)) {
-						elm.value = '12:00'; // default value
+						this.setValue('12:00'); // default value
 					}
 				}
 			});
@@ -238,9 +238,16 @@
 			// Helper function to set a time input.
 			// Takes a Date object or string.
 			this.setTime = function(time) {
-				elm.value = formatTime(timeToDate(time, settings), settings);
+				this.setValue(formatTime(timeToDate(time, settings), settings));
 				// Trigger element's change events.
 				elm.fire('time:change');
+			};
+			// Set value of input and call 'onChange' if defined
+			this.setValue = function(value) {
+				elm.value = value;
+				if(typeof settings.onChange === 'function') {
+					settings.onChange();
+				}
 			};
 		}
 	});
@@ -249,6 +256,9 @@
 	function setTimeVal(elm, sel, $tpDiv, settings) {
 		// Update input field
 		elm.value = $(sel).getAttribute('data-time');
+		if(typeof settings.onChange === 'function') {
+			settings.onChange();
+		}
 		// Trigger element's change events.
 		elm.fire('time:change');
 		// Keep focus for all but IE (which doesn't like it)
