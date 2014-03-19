@@ -34,3 +34,6 @@ Default:
 ```
 
 More advanced example available in the index.htm file.
+
+##Demo
+[plunker link](http://plnkr.co/edit/Nz0afIfVMWxjhvPMkS4c)
