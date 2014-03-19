@@ -1,7 +1,7 @@
 (function(){
 
-	window.Proto = window.Proto || {};
-	window.Proto.TimePicker = Class.create({
+	window.Prototype = window.Prototype || {};
+	window.Prototype.TimePicker = Class.create({
 		version:'0.2', // by Riri
 		initialize: function(elm, options) {
 
@@ -65,7 +65,7 @@
 				}
 			});
 			$tpList.on('mousedown','li', function(event, element) {
-				 tpOver = true;
+				tpOver = true;
 			});
 			$tpList.on('click', 'li', function(event, element) {
 				setTimeVal(elm, element, $tpDiv, settings);
@@ -117,6 +117,9 @@
 					$tpDiv.hide();
 					if(!elm.value.match(hourFormat)) {
 						this.setValue('12:00'); // default value
+					}
+					if(typeof settings.onChange === 'function') {
+						settings.onChange();
 					}
 				}
 			});
@@ -191,37 +194,9 @@
 						e.stop();
 						return false;
 					default:
-						if(elm.value.match(hourFormat)) {
-							$tpDiv.select('li').invoke('removeClassName', selectedClass);
-
-							// Position
-							var elmOffset = elm.cumulativeOffset();
-							var elmLayout = elm.getLayout();
-							$tpDiv.setStyle({
-								'top':(elmOffset.top + elmLayout.get('border-box-height')) + 'px',
-								'left':elmOffset.left + 'px',
-								'minWidth':elmLayout.get('padding-box-width') + 'px'
-							});
-
-							// Show picker. This has to be done before scrollTop is set since that
-							// can't be done on hidden elements.
-							$tpDiv.show();
-
-							// Try to find a time in the list that matches the entered time.
-							var time = elm.value ? timeStringToDate(elm.value, settings) : defaultTime;
-							var startMin = startTime.getHours() * 60 + startTime.getMinutes();
-							var min = (time.getHours() * 60 + time.getMinutes()) - startMin;
-							var steps = Math.round(min / settings.step);
-							var roundTime = normaliseTime(new Date(0, 0, 0, 0, (steps * settings.step + startMin), 0));
-							roundTime = (startTime < roundTime && roundTime <= endTime) ? roundTime : startTime;
-							var $matchedTime = $tpDiv.down("li[data-time='" + formatTime(roundTime, settings) + "']");
-
-							if ($matchedTime) {
-								$matchedTime.addClassName(selectedClass);
-								// Scroll to matched time.
-								$tpDiv.scrollTop = $matchedTime.offsetTop;
-							}
- 						}
+						if($tpDiv.visible()) {
+							$tpDiv.hide();
+						}
 						break;
 
 				}
@@ -242,7 +217,7 @@
 				// Trigger element's change events.
 				elm.fire('time:change');
 			};
-			// Set value of input and call 'onChange' if defined
+			// Set value of input and call 'onChange'
 			this.setValue = function(value) {
 				elm.value = value;
 				if(typeof settings.onChange === 'function') {
@@ -273,7 +248,7 @@
 		var h = time.getHours();
 		var hours = settings.show24Hours ? h : (((h + 11) % 12) + 1);
 		var minutes = time.getMinutes();
-	    var hours_str = settings.leadingZero ?  formatNumber(hours) : hours;
+		var hours_str = settings.leadingZero ?  formatNumber(hours) : hours;
 		return hours_str + settings.separator + formatNumber(minutes) + (settings.show24Hours ? '' : ((h < 12) ? ' AM' : ' PM'));
 	}
 
