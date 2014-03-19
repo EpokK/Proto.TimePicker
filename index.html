@@ -1,8 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
-	<title>jQuery timePicker</title>
-	<link rel="stylesheet" href="Proto.TimePicker.css" type="text/css" media="screen" title="no title" charset="utf-8">
+	<title>Prototype timePicker</title>
+	<link rel="stylesheet" href="Prototype.TimePicker.css" type="text/css" media="screen" title="no title" charset="utf-8">
 	<style type="text/css">
 		div {
 			margin-top:3em;
@@ -23,37 +23,37 @@
 			border:1px solid red;
 		}
 	</style>
-	
+
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.7/prototype.js"></script>
-	<script type="text/javascript" src="Proto.TimePicker.js"></script>
+	<script type="text/javascript" src="Prototype.TimePicker.js"></script>
 	<script type="text/javascript">
 		Event.observe(document, 'dom:loaded', function () {
 			// Default.
-			new Proto.TimePicker("time1");
+			new Prototype.TimePicker("time1");
 			// 02.00 AM - 03.30 PM, 15 minutes steps.
-			new Proto.TimePicker('time2', {
+			new Prototype.TimePicker('time2', {
 				startTime: "02.00",	 // Using string. Can take string or Date object.
 				endTime: new Date(0, 0, 0, 15, 30, 0),	// Using Date object.
 				show24Hours: false,
 				separator:'.',
 				step: 15
 			});
-		
-			// An example how the two helper functions can be used to achieve 
+
+			// An example how the two helper functions can be used to achieve
 			// advanced functionality.
 			// - Linking: When changing the first input the second input is updated and the
 			//	 duration is kept.
 			// - Validation: If the second input has a time earlier than the firs input,
 			//	 an error class is added.
-		
+
 			// Use default settings
-			var t3 = new Proto.TimePicker('time3');
-			var t4 = new Proto.TimePicker('time4');
-			
-				
+			var t3 = new Prototype.TimePicker('time3');
+			var t4 = new Prototype.TimePicker('time4');
+
+
 			// Store time used by duration.
 			var oldTime = t3.getTime();
-		
+
 			// Keep the duration between the two inputs.
 			$("time3").on('time:change', function() {
 				if ($("time4").value) { // Only update when second input has a value.
@@ -74,7 +74,7 @@
 					this.removeClassName("error");
 				}
 			});
-		
+
 		});
 	</script>
 </head>
@@ -98,7 +98,7 @@ $("#time2").timePicker({
   step: 15});</code></pre>
 
 <div><input type="text" id="time3" size="10" value="08:00" /> <input type="text" id="time4" size="10" value="09:00" /></div>
-<pre><code>// An example how the two helper functions can be used to achieve 
+<pre><code>// An example how the two helper functions can be used to achieve
 // advanced functionality.
 // - Linking: When changing the first input the second input is updated and the
 //   duration is kept.
@@ -107,7 +107,7 @@ $("#time2").timePicker({
 
 // Use default settings
 $("#time3, #time4").timePicker();
-    
+
 // Store time used by duration.
 var oldTime = $.timePicker("#time3").getTime();
 
